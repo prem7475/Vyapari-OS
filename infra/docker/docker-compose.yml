@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vyapari_postgres
+    environment:
+      POSTGRES_DB: vyapari
+      POSTGRES_USER: vyapari
+      POSTGRES_PASSWORD: vyapari_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - vyapari_pgdata:/var/lib/postgresql/data
+      - ../db/migrations:/docker-entrypoint-initdb.d:ro
+
+volumes:
+  vyapari_pgdata:
+

@@ -1,0 +1,9 @@
+{
+  "name": "@vyapari/admin",
+  "private": true,
+  "scripts": {
+    "dev": "echo \"(Next.js scaffold pending)\"",
+    "lint": "echo \"(lint scaffold)\""
+  }
+}
+

@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum AdminRole {
+  ADMIN
+  SUPER_ADMIN
+  OPERATIONS_STAFF
+}
+
+enum AdminStatus {
+  ACTIVE
+  DISABLED
+}
+
+model User {
+  id          String      @id @default(cuid())
+  phone       String      @unique
+  firebaseUid String?     @unique
+  email       String?     @unique
+  name        String?
+  role        UserRole    @default(CUSTOMER)
+  status      UserStatus  @default(ACTIVE)
+  lastLoginAt DateTime?
+
+  sessions    UserSession[]
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+
+  @@index([phone])
+  @@index([firebaseUid])
+  @@index([deletedAt])
+}
+
+model AdminUser {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  name         String
+  role         AdminRole    @default(ADMIN)
+  status       AdminStatus  @default(ACTIVE)
+  lastLoginAt  DateTime?
+
+  sessions     AdminSession[]
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  deletedAt    DateTime?
+
+  @@index([email])
+  @@index([role])
+  @@index([deletedAt])
+}
+
+model UserSession {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash   String    @unique
+  userAgent   String?
+  ip          String?
+  expiresAt   DateTime
+  revokedAt   DateTime?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+}
+
+model AdminSession {
+  id          String    @id @default(cuid())
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  tokenHash   String    @unique
+  userAgent   String?
+  ip          String?
+  expiresAt   DateTime
+  revokedAt   DateTime?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([adminUserId, revokedAt])
+  @@index([expiresAt])
+}
+

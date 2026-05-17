@@ -29,6 +29,14 @@ const envSchema = z.object({
   FIREBASE_CLIENT_EMAIL: z.string().optional(),
   FIREBASE_PRIVATE_KEY: z.string().optional(),
 
+  AWS_S3_BUCKET: z.string().optional(),
+  AWS_REGION: z.string().default('us-east-1'),
+  AWS_ACCESS_KEY_ID: z.string().optional(),
+  AWS_SECRET_ACCESS_KEY: z.string().optional(),
+
+  RAZORPAY_KEY_ID: z.string().optional(),
+  RAZORPAY_KEY_SECRET: z.string().optional(),
+
   ADMIN_COOKIE_NAME: z.string().default('vy_admin'),
   USER_COOKIE_NAME: z.string().default('vy_user'),
   COOKIE_DOMAIN: z.string().optional(),
@@ -65,6 +73,14 @@ export const env = Object.freeze({
     clientEmail: raw.FIREBASE_CLIENT_EMAIL,
     privateKey: raw.FIREBASE_PRIVATE_KEY ? raw.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined,
   },
+
+  awsS3Bucket: raw.AWS_S3_BUCKET || undefined,
+  awsRegion: raw.AWS_REGION,
+  awsAccessKeyId: raw.AWS_ACCESS_KEY_ID || undefined,
+  awsSecretAccessKey: raw.AWS_SECRET_ACCESS_KEY || undefined,
+
+  razorpayKeyId: raw.RAZORPAY_KEY_ID || undefined,
+  razorpayKeySecret: raw.RAZORPAY_KEY_SECRET || undefined,
 
   cookies: {
     adminCookieName: raw.ADMIN_COOKIE_NAME,

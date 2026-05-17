@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import { v1Routes } from './v1.js';
+import { healthRoutes } from './health.routes.ts';
 
 export function routes() {
   const r = Router();
-  r.get('/health', (req, res) => res.status(200).json({ ok: true, data: { status: 'ok' } }));
+  r.use('/health', healthRoutes());
   r.use('/v1', v1Routes());
   return r;
 }

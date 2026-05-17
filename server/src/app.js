@@ -1,17 +1,16 @@
 import express from 'express';
-import helmet from 'helmet';
-import cors from 'cors';
-import compression from 'compression';
-import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import pinoHttp from 'pino-http';
 
 import { env } from './config/env.js';
-import { logger } from './config/logger.js';
+import { logger } from './config/logger.ts';
 import { requestId } from './middleware/requestId.js';
 import { routes } from './routes/index.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { requestLogger } from './middleware/request-logger.ts';
+import { compressionMiddleware, cachingHeaders } from './middleware/compression.ts';
+import { applySecurityMiddleware } from './config/security.ts';
 
 export function createApp() {
   const app = express();
@@ -21,40 +20,12 @@ export function createApp() {
 
   app.use(requestId);
   app.use(pinoHttp({ logger }));
-
-  app.use(
-    helmet({
-      crossOriginResourcePolicy: { policy: 'cross-origin' },
-    }),
-  );
-
-  app.use(
-    cors({
-      origin: (origin, cb) => {
-        if (!origin) return cb(null, true);
-        if (env.corsOrigins.length === 0) return cb(null, true);
-        return cb(null, env.corsOrigins.includes(origin));
-      },
-      credentials: true,
-      allowedHeaders: ['content-type', 'authorization', 'x-request-id'],
-      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      maxAge: 86400,
-    }),
-  );
-
-  app.use(
-    rateLimit({
-      windowMs: 60 * 1000,
-      limit: env.nodeEnv === 'production' ? 300 : 600,
-      standardHeaders: true,
-      legacyHeaders: false,
-      keyGenerator: (req) => req.ip,
-    }),
-  );
-
-  app.use(compression());
+  app.use(requestLogger);
+  applySecurityMiddleware(app);
+  app.use(cachingHeaders);
+  app.use(compressionMiddleware());
   app.use(cookieParser());
-  app.use(express.json({ limit: '1mb' }));
+  app.use(express.json({ limit: '2mb' }));
 
   app.use(routes());
   app.use(notFound);

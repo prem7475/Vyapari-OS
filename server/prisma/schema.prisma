@@ -104,3 +104,87 @@ model AdminSession {
   @@index([expiresAt])
 }
 
+enum RequestStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum RequestPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum DocumentStatus {
+  UPLOADED
+  VERIFIED
+  REJECTED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum EscrowStatus {
+  PENDING
+  RELEASED
+  HELD
+}
+
+model ServiceRequest {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title           String
+  description     String?
+  status          RequestStatus @default(OPEN)
+  priority        RequestPriority @default(MEDIUM)
+  assignedTo      String?
+  documents       Document[]
+  payments        Payment[]
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Document {
+  id              String         @id @default(cuid())
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceRequestId String?        
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  category        String
+  originalName    String
+  storageKey      String
+  fileType        String
+  fileSize        Int
+  status          DocumentStatus @default(UPLOADED)
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model Payment {
+  id              String       @id @default(cuid())
+  userId          String
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceRequestId String?      
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  invoiceNumber   String       @unique
+  amount          Decimal
+  currency        String       @default("INR")
+  method          String
+  status          PaymentStatus @default(PENDING)
+  escrowStatus    EscrowStatus  @default(PENDING)
+  description     String?
+  razorpayOrderId String?       @unique
+  razorpayPaymentId String?     @unique
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+

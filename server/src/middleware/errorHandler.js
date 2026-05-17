@@ -1,5 +1,6 @@
 import { ApiError } from '../utils/apiError.js';
-import { logger } from '../config/logger.js';
+import { logger } from '../config/logger.ts';
+import { trackError } from './error-tracker.ts';
 
 export function errorHandler(err, req, res, next) {
   const apiErr =
@@ -11,6 +12,8 @@ export function errorHandler(err, req, res, next) {
         });
 
   const status = apiErr.statusCode || 500;
+
+  trackError(err, req);
 
   const logPayload = {
     status,
